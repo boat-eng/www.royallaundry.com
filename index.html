@@ -1324,7 +1324,219 @@
           console.error('EmailJS error:', error);
       });
 
-      this.reset();
+      this.reset();// Notification System
+        let notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+        let unreadCount = notifications.filter(n => n.read === false).length;
+        
+        // Update notification count
+        function updateNotificationCount() {
+            document.getElementById('notificationCount').textContent = unreadCount;
+        }
+        
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Add new notification
+        function addNotification(customerName, serviceType, date) {
+            const newNotification = {
+                id: Date.now(),
+                customer: customerName,
+                service: serviceType,
+                date: date,
+                timestamp: new Date().toISOString(),
+                read: false
+            };
+            
+            notifications.unshift(newNotification);
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+            unreadCount++;
+            updateNotificationCount();
+            
+            // Show toast
+            showToast(`${customerName} scheduled a ${serviceType} pickup for ${date}`);
+        }
+        
+        // Render notifications in admin panel
+        function renderNotifications() {
+            const adminContent = document.getElementById('adminContent');
+            const noNotifications = document.getElementById('noNotifications');
+            
+            if (notifications.length === 0) {
+                noNotifications.style.display = 'block';
+                adminContent.innerHTML = '';
+                return;
+            }
+            
+            noNotifications.style.display = 'none';
+            adminContent.innerHTML = '';
+            
+            notifications.forEach(notification => {
+                const notificationItem = document.createElement('div');
+                notificationItem.className = `notification-item ${notification.read ? '' : 'unread'}`;
+                notificationItem.dataset.id = notification.id;
+                
+                const date = new Date(notification.date).toLocaleDateString();
+                
+                notificationItem.innerHTML = `
+                    <div class="notification-text">
+                        <strong>${notification.customer}</strong> scheduled a ${notification.service} pickup
+                    </div>
+                    <div class="notification-details">
+                        <span>Date: ${date}</span>
+                    </div>
+                    <div class="notification-time">
+                        ${new Date(notification.timestamp).toLocaleString()}
+                    </div>
+                `;
+                
+                notificationItem.addEventListener('click', () => {
+                    // Mark as read
+                    notifications = notifications.map(n => 
+                        n.id === notification.id ? {...n, read: true} : n
+                    );
+                    localStorage.setItem('notifications', JSON.stringify(notifications));
+                    
+                    // Update unread count
+                    unreadCount = notifications.filter(n => n.read === false).length;
+                    updateNotificationCount();
+                    
+                    // Update UI
+                    notificationItem.classList.remove('unread');
+                });
+                
+                adminContent.appendChild(notificationItem);
+            });
+        }
+        
+        // Toggle admin panel
+        document.getElementById('notificationBell').addEventListener('click', () => {
+            const adminPanel = document.getElementById('adminPanel');
+            if (adminPanel.style.display === 'block') {
+                adminPanel.style.display = 'none';
+            } else {
+                adminPanel.style.display = 'block';
+                renderNotifications();
+                
+                // Mark all notifications as read when opening panel
+                notifications = notifications.map(n => ({...n, read: true}));
+                localStorage.setItem('notifications', JSON.stringify(notifications));
+                unreadCount = 0;
+                updateNotificationCount();
+            }
+        });
+        
+        document.getElementById('closeAdmin').addEventListener('click', () => {
+            document.getElementById('adminPanel').style.display = 'none';
+        });
+        
+        document.getElementById('closeToast').addEventListener('click', () => {
+            document.getElementById('toast').classList.remove('show');
+        });
+        
+        // ---- MODIFIED BOOKING FORM SUBMISSION FOR EMAILJS ----
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const service = document.getElementById('service').value;
+            const date = document.getElementById('date').value;
+            const instructions = document.getElementById('instructions').value;
+
+            // Add notification
+            addNotification(name, service, date);
+
+            // Send email notification to admin using EmailJS
+            emailjs.send('service_x99gny1', 'template_j65chqo', {
+                to_email: 'beeztrapkotm015@gmail.com',
+                customer_name: name,
+                customer_email: email,
+                customer_phone: phone,
+                pickup_address: address,
+                service_type: service,
+                pickup_date: date,
+                special_instructions: instructions
+            }).then(function(response) {
+                alert('Thank you! Your pickup has been scheduled and notification sent.');
+            }, function(error) {
+                alert('Your pickup has been scheduled, but email notification failed.');
+                console.error('EmailJS error:', error);
+            });
+
+            this.reset();
+        });
+        
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Thank you for your message! We will get back to you as soon as possible.');
+            this.reset();
+        });
+        
+        // Smooth Scrolling for Anchor Links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Close mobile menu if open
+                    if (window.innerWidth <= 768) {
+                        navMenu.style.display = 'none';
+                    }
+                }
+            });
+        });
+        
+        // Set minimum date for booking form to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('date').setAttribute('min', today);
+        
+        // Add active class to navigation links on scroll
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('nav ul li a');
+            
+            let current = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                
+                if (pageYOffset >= (sectionTop - 100)) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+        
+        // Initialize notification count
+        updateNotificationCount();
+      
   });
 </script>
 </body>
