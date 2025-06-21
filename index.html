@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Royal Laundry Service</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
     <style>
         /* Global Styles */
         * {
@@ -1295,7 +1296,7 @@
 
   // ... (rest of your code, or just the booking handler below)
 
-  document.getElementById('bookingForm').addEventListener('submit', function(e) {
+  document.getElementById('template_78zw29p').addEventListener('submit', function(e) {
       e.preventDefault();
 
       const name = document.getElementById('name').value;
@@ -1308,7 +1309,7 @@
 
       addNotification(name, service, date);
 
-      emailjs.send('service_x99gny1', 'template_j65chqo', {
+      emailjs.send('service_x99gny1', 'template_78zw29p', {
           to_email: 'beeztrapkotm015@gmail.com',
           customer_name: name,
           customer_email: email,
@@ -1442,7 +1443,7 @@
         });
         
         // ---- MODIFIED BOOKING FORM SUBMISSION FOR EMAILJS ----
-        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+        document.getElementById('template_78zw29p').addEventListener('submit', function(e) {
             e.preventDefault();
             
             // Get form values
