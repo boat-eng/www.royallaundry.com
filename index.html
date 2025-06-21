@@ -1292,7 +1292,41 @@
 <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
 <script>
   emailjs.init('aKTqoaEegW5TOfJdA'); // Replace with your actual User ID
-</script>
+</script>document.getElementById('bookingForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+<script>
+    // Get form values
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const phone = document.getElementById('phone').value;
+    const address = document.getElementById('address').value;
+    const service = document.getElementById('service').value;
+    const date = document.getElementById('date').value;
+    const instructions = document.getElementById('instructions').value;
+
+    // Add notification (existing logic)
+    addNotification(name, service, date);
+
+    // Send email notification to admin using EmailJS
+    emailjs.send('service_x99gny1', 'template_j65chqo', {
+        to_email: 'beeztrapkotm015@gmail.com',
+        customer_name: name,
+        customer_email: email,
+        customer_phone: phone,
+        pickup_address: address,
+        service_type: service,
+        pickup_date: date,
+        special_instructions: instructions
+    }).then(function(response) {
+        alert('Thank you! Your pickup has been scheduled and notification sent.');
+    }, function(error) {
+        alert('Your pickup has been scheduled, but email notification failed.');
+        console.error('EmailJS error:', error);
+    });
+
+    this.reset();
+});
+    
         
         
 </body>
